@@ -1,0 +1,44 @@
+<div class="columns-2 md:columns-3 lg:columns-4 gap-4 p-4">
+  @for (img of imageUrls; track img.id; let i = $index) {
+    <img
+      [src]="img.url"
+      alt="Gallery image"
+      (click)="openPreview(i)"
+      class="mb-6 w-full rounded-lg break-inside-avoid shadow-md hover:scale-105 hover:z-10 transition-transform duration-300 cursor-pointer"
+    />
+  }
+</div>
+
+@if (selectedIndex !== null) {
+  <div
+    class="fixed inset-0 bg-black bg-opacity-80 flex items-center justify-center z-50"
+    [class.animate-fadeIn]="!isClosing"
+    [class.animate-fadeOut]="isClosing"
+  >
+    <button
+      class="absolute top-4 right-8 text-white text-3xl font-bold hover:scale-125 transition-transform"
+      (click)="closePreview()"
+      aria-label="Close"
+    >×</button>
+    <button
+      class="absolute left-8 text-white text-4xl font-bold hover:scale-125 transition-transform"
+      (click)="prevImage()"
+      aria-label="Previous"
+    >‹</button>
+    @if (isImageVisible) {
+      <img
+        [src]="imageUrls[selectedIndex!].url"
+        alt="Preview"
+        class="max-h-[80vh] max-w-[90vw] rounded-lg shadow-2xl transition-all duration-300"
+        [class.animate-slideInLeft]="slideDirection === 'left'"
+        [class.animate-slideInRight]="slideDirection === 'right'"
+        [class.animate-zoomIn]="!isClosing && !slideDirection"
+      />
+    }
+    <button
+      class="absolute right-8 text-white text-4xl font-bold hover:scale-125 transition-transform"
+      (click)="nextImage()"
+      aria-label="Next"
+    >›</button>
+  </div>
+}
