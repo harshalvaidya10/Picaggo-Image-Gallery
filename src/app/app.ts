@@ -10,6 +10,7 @@ import { Navbar } from './navbar/navbar';
 })
 export class App {
   protected title = 'image-gallery';
+  isPreviewOpen = false;
 
   scrollToTop() {
     window.scrollTo({ top: 0, behavior: 'smooth' });

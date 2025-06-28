@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, Output, EventEmitter, HostListener } from '@angular/core';
 
 @Component({
   selector: 'app-gallery',
@@ -6,6 +6,8 @@ import { Component } from '@angular/core';
   styleUrls: ['./gallery.css']
 })
 export class Gallery {
+  @Output() previewStateChange = new EventEmitter<boolean>();
+
   imageUrls = [
     { id: 1, url: 'https://images.pexels.com/photos/26797335/pexels-photo-26797335/free-photo-of-scenic-view-of-mountains.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2' },
     { id: 2, url: 'https://images.unsplash.com/photo-1744137285276-57ca4048f805?q=80&w=3088&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D' },
@@ -38,18 +40,24 @@ export class Gallery {
   slideDirection: 'left' | 'right' | null = null;
   isClosing = false;
   isImageVisible = true;
+  showDownloadMenu = false;
+  currentImageViews = 112061;
+  currentImageDownloads = 178;
 
   openPreview(index: number) {
     this.selectedIndex = index;
     this.isClosing = false;
     this.slideDirection = null;
+    this.previewStateChange.emit(true); // Emit true when opening
   }
 
   closePreview() {
     this.isClosing = true;
+    this.showDownloadMenu = false; // Close download menu
     setTimeout(() => {
       this.selectedIndex = null;
       this.isClosing = false;
+      this.previewStateChange.emit(false); // Emit false when closing
     }, 300);
   }
 
@@ -75,5 +83,77 @@ export class Gallery {
         this.isImageVisible = true;
       }, 300);
     }
+  }
+
+  toggleDownloadMenu() {
+    this.showDownloadMenu = !this.showDownloadMenu;
+  }
+
+  getCurrentImageData() {
+    if (this.selectedIndex !== null) {
+      return this.imageUrls[this.selectedIndex];
+    }
+    return null;
+  }
+
+  handleLike() {
+    console.log('Image liked!');
+    // Add like functionality here later
+  }
+
+  handleShare() {
+    console.log('Image shared!');
+    // Add share functionality here later
+  }
+
+  downloadImage(size: string) {
+    if (this.selectedIndex !== null) {
+      const currentImage = this.imageUrls[this.selectedIndex];
+      let downloadUrl = currentImage.url;
+      
+      // Modify URL parameters for different sizes if the image service supports it
+      if (downloadUrl.includes('unsplash.com') || downloadUrl.includes('pexels.com')) {
+        // Remove existing size parameters and add new ones
+        const baseUrl = downloadUrl.split('?')[0];
+        const urlParams = new URLSearchParams();
+        
+        switch (size) {
+          case 'small':
+            urlParams.set('w', '640');
+            urlParams.set('h', '480');
+            urlParams.set('fit', 'crop');
+            break;
+          case 'medium':
+            urlParams.set('w', '1280');
+            urlParams.set('h', '720');
+            urlParams.set('fit', 'crop');
+            break;
+          case 'large':
+            urlParams.set('w', '1920');
+            urlParams.set('h', '1080');
+            urlParams.set('fit', 'crop');
+            break;
+        }
+        
+        urlParams.set('auto', 'format');
+        urlParams.set('q', '80');
+        downloadUrl = `${baseUrl}?${urlParams.toString()}`;
+      }
+      
+      // Create a temporary anchor element to trigger download
+      const link = document.createElement('a');
+      link.href = downloadUrl;
+      link.download = `image-${currentImage.id}-${size}.jpg`;
+      link.target = '_blank';
+      
+      // Append to body, click, and remove
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      
+      console.log(`Downloading image ${currentImage.id} in ${size} size`);
+    }
+    
+    this.showDownloadMenu = false;
   }
 }
